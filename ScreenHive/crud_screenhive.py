@@ -138,8 +138,8 @@ async def criar_seguidor(seguidor: Seguidores):
     try:
         cur.execute(
             """
-            INSERT INTO seguidores(id_usuario, id_seguidor) VALUES (%s, %s)
-            """, (seguidor.id_usuario, seguidor.id_seguidor)
+            INSERT INTO seguidores(id_seguidor, id_seguido) VALUES (%s, %s)
+            """, (seguidor.id_seguidor, seguidor.id_seguido)
         )
         conn.commit()
     except Exception as e:
@@ -150,6 +150,7 @@ async def criar_seguidor(seguidor: Seguidores):
         conn.close()
 
     return {"msg": "Seguidor criado com sucesso"}
+
 
 @router.get("/usuario", response_model=List[Usuario])
 async def obter_usuario():
@@ -231,6 +232,37 @@ async def obter_recomendacao():
         )
         for row in rows
     ]
+@router.get("/genero", response_model=List[Genero])
+async def obter_generos():
+    conn = get_conection()
+    cur = conn.cursor()
+    cur.execute("SELECT id_genero, nome FROM genero")
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return [Genero(id_genero=row[0], nome=row[1]) for row in rows]
+
+@router.get("/cont_genero")
+async def obter_cont_generos():
+    conn = get_conection()
+    cur = conn.cursor()
+    cur.execute("SELECT id_conteudo, id_genero FROM cont_genero")
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return [ContGenero(id_conteudo=row[0], id_genero=row[1]) for row in rows]
+
+@router.get("/seguidores", response_model=List[Seguidores])
+async def obter_seguidores():
+    conn = get_conection()
+    cur = conn.cursor()
+    cur.execute("SELECT id_seguidor, id_seguido FROM seguidores")
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return [Seguidores(id_seguidor=row[0], id_seguido=row[1]) for row in rows]
+
+
 
 @router.patch("/usuario/{id_usuario}")
 async def atualizar_usuario(id_usuario: int, usuario: Usuario):
@@ -366,3 +398,43 @@ async def deletar_avaliacao(id_avaliacao: int):
     conn.commit()
     cur.close()
     return {"msg": "Avaliação deletada com sucesso"}
+
+@router.delete("/genero/{id_genero}")
+async def deletar_genero(id_genero: int):
+    conn = get_conection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM genero WHERE id_genero = %s", (id_genero,))
+    conn.commit()
+    cur.close()
+    return {"msg": "Gênero deletado com sucesso"}
+
+    
+@router.delete("/cont_genero")
+async def deletar_cont_genero(id_conteudo: int, id_genero: int):
+    conn = get_conection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM cont_genero WHERE id_conteudo = %s AND id_genero = %s", (id_conteudo, id_genero))
+    conn.commit()
+    cur.close()
+    return {"msg": "Relação conteúdo-gênero deletada com sucesso"}
+
+@router.delete("/recomendacao/{id_recomendacao}")
+async def deletar_recomendacao(id_recomendacao: int):
+    conn = get_conection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM recomendacao WHERE id_recomendacao = %s", (id_recomendacao,))
+    conn.commit()
+    cur.close()
+    return {"msg": "Recomendação deletada com sucesso"}
+
+@router.delete("/seguidores")
+async def deletar_seguidor(id_usuario: int, id_seguidor: int):
+    conn = get_conection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM seguidores WHERE id_seguidor = %s AND id_seguido = %s", (id_seguidor, id_usuario))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"msg": "Seguidor removido com sucesso"}
+
+
