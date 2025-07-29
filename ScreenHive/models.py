@@ -92,6 +92,6 @@ class Recomendacao(BaseModel):
     data_recomendacao: Optional[date] = None
 
 class Seguidores(BaseModel):
-    id_seguidor: int  # quem segue
-    id_seguido: int   # quem está sendo seguido
+    id_seguidor: int  
+    id_seguido: int   
 
