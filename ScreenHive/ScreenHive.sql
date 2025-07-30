@@ -22,7 +22,6 @@ CREATE TABLE Genero (
     nome VARCHAR(100) UNIQUE NOT NULL
 );
 
-
 CREATE TABLE ContGenero (
     id_conteudo INT NOT NULL,
     id_genero INT NOT NULL,
@@ -98,7 +97,6 @@ CREATE TABLE Seguidores (
     FOREIGN KEY (id_seguidor) REFERENCES Usuario(id_usuario) ON DELETE CASCADE,
     FOREIGN KEY (id_seguido) REFERENCES Usuario(id_usuario) ON DELETE CASCADE
 );
-
 
 -- INSERCAO DE DADOS
 -- Tabela Usuario
@@ -230,3 +228,27 @@ INSERT INTO Seguidores (id_seguidor, id_seguido) VALUES
 (3, 1), (3, 5),
 (4, 2), (5, 6),
 (6, 1), (7, 2);
+
+-- VISOES CRIADAS
+CREATE OR REPLACE VIEW vw_resumo_atividade_usuario AS
+SELECT u.id_usuario, u.nome, u.email, u.data_cadastro,
+    (SELECT COUNT(*) FROM Avaliacao WHERE id_usuario = u.id_usuario) AS total_avaliacoes_feitas,
+    (SELECT COUNT(*) FROM HistVisualizacao WHERE id_usuario = u.id_usuario AND concluido = TRUE) AS total_conteudos_concluidos,
+    (SELECT COUNT(*) FROM Recomendacao WHERE id_usuario_recomenda = u.id_usuario) AS total_recomendacoes_enviadas,
+    (SELECT COUNT(*) FROM ListaPessoal WHERE id_usuario = u.id_usuario) AS total_listas_criadas
+FROM Usuario u ORDER BY u.id_usuario;
+
+CREATE OR REPLACE VIEW vw_media_avaliacoes_conteudo AS
+SELECT c.id_conteudo, c.titulo, c.tipo, c.ano_lancamento, COUNT(a.id_avaliacao) AS total_avaliacoes, ROUND(AVG(a.nota), 2) AS media_nota FROM Conteudo c
+LEFT JOIN Avaliacao a ON c.id_conteudo = a.id_conteudo
+GROUP BY c.id_conteudo, c.titulo, c.tipo, c.ano_lancamento
+ORDER BY media_nota DESC, total_avaliacoes DESC;
+
+-- USUARIOS CRIADOS
+CREATE USER admin_app WITH PASSWORD 'senha123';
+GRANT ALL PRIVILEGES ON DATABASE "ScreenHive" TO admin_app;
+
+CREATE USER reader_user WITH PASSWORD 'senha123';
+GRANT CONNECT ON DATABASE "ScreenHive" TO reader_app;
+GRANT USAGE ON SCHEMA public TO reader_app;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO reader_app;
